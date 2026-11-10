@@ -1,0 +1,4 @@
+Windows 音訊驅動架構與延遲 (Latency) 控制：
+1. ASIO 獨占模式：由 Steinberg 開發的專業音訊驅動，可繞過 Windows 系統混音器 (KMixer)，實現低於 10ms 的無感延遲。
+2. WASAPI / Shared Mode：Windows 預設共享模式，延遲高達 30~100ms，彈奏吉他時會有明顯滯後感，不適合實時錄音。
+3. 緩衝區設定 (Buffer Size)：建議設定在 64 至 128 Samples。設定過小會導致 CPU 爆音 (Pop/Click)，過大則會造成延遲。

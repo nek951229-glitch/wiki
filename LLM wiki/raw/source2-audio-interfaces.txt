@@ -1,0 +1,5 @@
+常見入門音訊介面與監聽模式說明：
+1. 硬體設備：如 JOYO MOMIX-CAB、Behringer UMC202HD 等 USB 音訊介面。
+2. 監聽模式 (Direct Monitor vs. Software Monitor)：
+   - 硬體直接監聽 (Direct Monitor)：聲音不經過電腦軟體直接傳回耳機，零延遲，但只能聽到的乾音 (Dry Signal)。
+   - 軟體監聽 (Software Monitor)：聲音經過音箱模擬軟體處理後輸出濕音 (Wet Signal)，需搭配 low-latency ASIO 驅動使用。

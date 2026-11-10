@@ -1,0 +1,5 @@
+軟體音箱模擬 (Amp Simulators) 設定指南：
+1. 主流軟體：AmpliTube 5、Guitar Rig 7 Pro、Neural DSP。
+2. 輸入/輸出路由 (I/O Routing)：
+   - Input Preference 必須選擇音訊介面對應的 Channel（例如 Input 1）。
+   - Audio Device Type 必須選擇 ASIO，並指名對應的 Audio Interface 驅動名稱。

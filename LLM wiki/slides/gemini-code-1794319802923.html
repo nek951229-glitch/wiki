@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>電吉他電腦錄音入門與音訊工程終極指南</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 隱藏非作用中的投影片，作用中的投影片使用 flex 排版 */
+    .slide { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+    .slide.active { display: flex; opacity: 1; }
+    
+    /* 客製化滾動條，讓每頁超過 500 字的長文易於閱讀 */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-200 min-h-screen flex flex-col justify-between font-sans">
+
+  <!-- 頂部進度條 -->
+  <div class="w-full bg-slate-800 h-1.5 fixed top-0 z-50">
+    <div id="progressBar" class="bg-blue-500 h-1.5 transition-all duration-300" style="width: 5%;"></div>
+  </div>
+
+  <!-- 主要簡報內容區 (限制最大寬度，並允許垂直滾動) -->
+  <main class="flex-grow flex flex-col items-center justify-start pt-12 pb-24 px-6 overflow-hidden h-[90vh]">
+    <div id="slidesContainer" class="w-full max-w-5xl h-full relative">
+
+      <!-- ==================== Slide 1: 封面 ==================== -->
+      <div class="slide active flex-col justify-center items-center h-full text-center space-y-6 overflow-y-auto px-4">
+        <span class="px-4 py-1.5 bg-blue-900/50 text-blue-300 rounded-full text-sm font-semibold tracking-widest border border-blue-700/50">LLM WIKI 深度編譯簡報</span>
+        <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight">電吉他電腦錄音<br><span class="text-blue-500">與音訊工程終極指南</span></h1>
+        <p class="text-slate-400 text-xl max-w-2xl mt-6">
+          從拾音器物理特性、ADC/DAC 數位類比轉換、ASIO 核心底層架構，到 AmpliTube 5 與 Guitar Rig 7 實戰。本簡報彙整自 5 篇深度 LLM Wiki 知識庫，涵蓋超過萬字的技術解析與圖表比較。
+        </p>
+        <div class="mt-12 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 max-w-lg w-full text-left">
+          <p class="text-sm text-slate-300"><strong>📑 知識庫涵蓋範圍：</strong></p>
+          <ul class="list-disc list-inside text-sm text-slate-400 mt-3 space-y-1">
+            <li>硬體訊號鏈 (Signal Chain) 與阻抗匹配 (Impedance Matching)</li>
+            <li>音訊介面 (Audio Interface) 深度規格解析</li>
+            <li>數位音訊工作站 (DAW) 與軟體音箱模擬路由</li>
+            <li>系統級別延遲 (Latency) 數學模型與計算</li>
+            <li>接地迴路 (Ground Loop) 與電磁干擾 (EMI) 故障排除</li>
+          </ul>
+        </div>
+        <p class="text-xs text-slate-500 mt-8 font-mono bg-slate-800 px-3 py-1 rounded">PRESS [←] OR [→] TO NAVIGATE</p>
+      </div>
+
+      <!-- ==================== Slide 2: 訊號鏈全景 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">1. 現代數位電吉他訊號鏈 (Signal Chain) 全景解析</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>在我們探討任何軟體設定之前，理解實體物理訊號如何轉變為電腦中的 0 與 1 是至關重要的。現代電吉他錄音的訊號鏈可以被嚴格劃分為「類比域 (Analog Domain)」、「轉換域 (Conversion Domain)」與「數位域 (Digital Domain)」三個階段。每一個階段的疏失（例如線材品質不佳、阻抗不匹配、取樣率設定錯誤）都會像蝴蝶效應一般，在最終的混音中被音箱模擬的高增益 (High Gain) 破音效果無限放大。</p>
+          
+          <figure class="my-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="w-full h-48 bg-slate-700 flex flex-col justify-center items-center rounded text-slate-400 border border-dashed border-slate-500">
+              <svg class="w-12 h-12 mb-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>[圖片佔位符] 完整的訊號鏈流程圖：吉他 -> 導線 -> 聲卡 -> USB -> 電腦</span>
+            </div>
+            <figcaption class="text-sm text-center text-slate-400 mt-3">圖 1.1：現代數位錄音訊號鏈示意圖。類比訊號藍線代表，數位訊號綠線代表。</figcaption>
+          </figure>
+
+          <p><strong>類比域 (Analog Domain)：</strong> 這一切始於你的吉他弦震動。切割拾音器 (Pickup) 的磁力線後，產生了微弱的交流微電壓。這個電壓訊號非常脆弱，屬於高阻抗 (High Impedance, Hi-Z) 訊號。如果此時使用品質低劣的 6.3mm TS 導線，線材本身的電容效應就會形成一個天然的「低通濾波器 (Low-pass Filter)」，把你吉他珍貴的高頻細節（俗稱的 Tone）全部吃掉。特別是對於使用 ST 型 (Stratocaster) 單線圈 (SSS) 配置的吉他手來說，高頻的清脆感 (Twang) 喪失是致命的。</p>
+          <p><strong>轉換域與數位域 (Conversion & Digital Domain)：</strong> 訊號進入音訊介面後，會先經過前級放大器 (Preamp) 將微弱訊號提升至線路電平 (Line Level)，接著進入 ADC (Analog-to-Digital Converter) 晶片。在這裡，連續的聲波被「切碎」成離散的數位取樣點（例如每秒 48,000 次，即 48kHz）。這些數據透過 USB 傳輸協議進入 Windows 系統，繞過龐雜的系統混音器，透過 ASIO 驅動直接送入 REAPER 或 AmpliTube 5 等軟體進行數學運算，最後再透過 DAC (Digital-to-Analog Converter) 轉換回類比訊號，推動你的耳機發聲。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 3: 阻抗匹配 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">2. 高阻抗 (Hi-Z) 訊號與阻抗匹配的物理學</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>許多初學者在第一次將吉他插入錄音介面時，會發現聲音聽起來極度沉悶、缺乏動態，且帶有奇怪的鼻音。這通常不是吉他壞了，也不是聲卡壞了，而是犯了音訊工程中最常見的錯誤：<strong>阻抗不匹配 (Impedance Mismatch)</strong>。</p>
+          <p>被動式電吉他（不裝電池的那種）的拾音器，其輸出阻抗通常在 7,000 歐姆到 15,000 歐姆之間，這在音訊世界中被歸類為「極高阻抗 (Hi-Z)」。根據電子學中的分壓定理 (Voltage Divider Rule)，為確保訊號電壓能完整地從吉他傳遞到錄音介面，接收端（聲卡）的輸入阻抗必須遠大於輸出端（吉他）的阻抗，業界標準通常要求接收端阻抗至少是輸出端的 10 倍以上，對於吉他來說，理想的輸入阻抗通常被設定在 1MΩ（1,000,000 歐姆）。</p>
+
+          <div class="bg-slate-800 p-5 rounded-lg border-l-4 border-amber-500 my-4">
+            <h4 class="text-amber-500 font-bold text-lg mb-2">⚠️ 災難性的 Line In 誤接</h4>
+            <p class="text-sm">如果你把吉他直接插進音訊介面的 Line In 孔（通常輸入阻抗只有 10kΩ 左右），吉他的高阻抗與 Line In 的低阻抗會形成嚴重的阻抗負載效應 (Loading Effect)。這會導致訊號的高頻部分被嚴重衰減，原本清脆的 ST 單線圈音色會聽起來像蒙上了一層厚重的棉被。這就是為什麼所有的專業聲卡都會配備一個切換開關（標示為 INST、Hi-Z 或一個吉他的圖示），按下這個開關，就是在硬體電路上切換電阻網絡，將輸入阻抗提升到 1MΩ，拯救你的高頻！</p>
+          </div>
+
+          <p>除了硬體上的匹配，導線長度也是阻抗物理學的一環。由於導線內部有兩根導體（訊號線與隔離網），它們之間隔著絕緣體，這在物理上完美構成了一個「電容器 (Capacitor)」。導線越長，電容值越大。高阻抗訊號遇到高電容，就會產生嚴重的低通濾波效應。這就是為什麼錄音室通常建議，從被動式吉他連接到音訊介面（或第一顆 Buffer 效果器）的導線長度，最好不要超過 3 到 5 公尺。如果你必須使用長導線（例如在舞台上），強烈建議在吉他端先接一顆 Buffer 效果器，將高阻抗訊號轉換為低阻抗訊號 (Lo-Z) 後再進行長距離傳輸，這樣就能徹底免疫導線電容帶來的音色損耗。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 4: 拾音器特性 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">3. 單線圈 (Single-Coil) vs 雙線圈 (Humbucker) 錄音特性</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>在數位錄音環境中，拾音器的物理構造不僅決定了你的音色基底，更直接影響了你在面對數位系統與環境電磁波時的抗干擾能力。以 Fender Stratocaster 為代表的單線圈 (SSS) 配置，與以 Gibson Les Paul 為代表的雙線圈 (HH) 配置，在錄音工程上的處理方式有著天壤之別。</p>
+
+          <table class="w-full text-sm text-left text-slate-300 border-collapse mt-4 mb-6">
+            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+              <tr>
+                <th scope="col" class="px-6 py-3 border border-slate-600">比較維度</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600 text-blue-300">單線圈 (Single-Coil)</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600 text-emerald-300">雙線圈 (Humbucker)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">物理構造</th>
+                <td class="px-6 py-4 border border-slate-600">單一線圈環繞磁柱。</td>
+                <td class="px-6 py-4 border border-slate-600">兩個極性相反、纏繞方向相反的線圈串聯。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">音色頻譜特性</th>
+                <td class="px-6 py-4 border border-slate-600">高頻突出、明亮清脆 (Glassy/Twang)、動態反應極佳。頻率響應曲線在 3k-5kHz 有明顯的諧振峰。</td>
+                <td class="px-6 py-4 border border-slate-600">中低頻飽滿、溫暖厚實 (Warm/Thick)。由於兩線圈之間的梳狀濾波效應，高頻會被部分抵消。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">輸出功率 (Output)</th>
+                <td class="px-6 py-4 border border-slate-600">較低 (Low Output)。在錄音介面上通常需要調高較多的 Gain。</td>
+                <td class="px-6 py-4 border border-slate-600">較高 (High Output)。容易推動真空管前級產生自然的破音 (Overdrive)。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">抗 EMI 雜訊能力</th>
+                <td class="px-6 py-4 border border-slate-600 font-bold text-rose-400">極差。</td>
+                <td class="px-6 py-4 border border-slate-600 font-bold text-emerald-400">極佳 (Hum-bucking)。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>對於喜歡彈奏 J-Pop 或 Funk 等需要清音 (Clean Tone) 的吉他手而言，ST 型單線圈吉他是首選。然而，單線圈拾音器本質上就是一個巨大的天線。當你坐在電腦螢幕前錄音時，螢幕的背光模組、電腦主機內的電源供應器 (PSU)、甚至是牆壁裡的 60Hz 交流電線，都會發出電磁干擾 (EMI)。單線圈拾音器會毫不留情地將這些干擾吸收，轉換成惱人的「嘶嘶」或「嗡嗡」底噪。</p>
+          <p><strong>錄音實戰建議：</strong> 如果你使用單線圈吉他錄音，請嘗試在房間內旋轉你坐的椅子。你會發現，當吉他拾音器的線圈方向與干擾源（例如電腦螢幕）呈現 90 度垂直時，雜音會奇蹟般地降到最低。這是因為磁力線無法有效切割線圈。此外，在軟體音箱（如 Guitar Rig 7）中，強烈建議在訊號鏈的最前端（甚至在前級之前）掛載一個 Noise Gate（噪音門），將 Threshold 設定在剛好能壓制底噪、又不吃掉吉他延音 (Sustain) 的微妙臨界點。</p>
+        </div>
+      </div>
+
+      <!-- Slide 5 到 Slide 20 的完整結構持續建立，為了示範高強度內容，以下每一頁皆深入剖析技術細節 -->
+      
+      <!-- ==================== Slide 5: 認識音訊介面 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">4. 核心硬體解剖：USB 音訊介面 (Audio Interface)</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>音訊介面（俗稱聲卡）是數位錄音的心臟。許多新手以為聲卡只是個讓接頭從 6.3mm 變成 USB 的「轉接頭」，這完全是嚴重的誤解。一台合格的音訊介面內部包含了極度精密的類比與數位電路，其優劣直接決定了你錄製音色的純淨度與系統的延遲表現。一台音訊介面主要由三大核心區塊組成：前級放大器 (Preamp)、類比數位轉換晶片 (ADC/DAC)、以及 USB 控制與時鐘電路 (Clocking)。</p>
+          
+          <figure class="my-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="w-full h-48 bg-slate-700 flex flex-col justify-center items-center rounded text-slate-400 border border-dashed border-slate-500">
+              <svg class="w-12 h-12 mb-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+              <span>[圖片佔位符] 音訊介面內部晶片架構圖 (Preamp -> ADC -> DSP -> USB)</span>
+            </div>
+            <figcaption class="text-sm text-center text-slate-400 mt-3">圖 4.1：音訊介面內部訊號處理流程。</figcaption>
+          </figure>
+
+          <p><strong>前級放大器 (Mic/Inst Preamp)：</strong> 這是訊號進入聲卡的第一關。吉他或麥克風的訊號極弱，需要前級將其放大數十倍。優秀的前級（如 Focusrite 的 Scarlett 系列或 Behringer 搭載的 Midas 設計前級）能在大幅提升音量的同時，保持極低的底噪（EIN，等效輸入噪聲）。如果前級品質不佳，當你把 Gain 轉大時，就會聽到明顯的「沙沙」聲（底噪）。</p>
+          <p><strong>ADC / DAC 轉換器：</strong> 這是類比與數位世界交界的魔法陣。ADC 負責將電壓起伏轉換成 24-bit / 48kHz 的數據流；DAC 則負責將電腦算完的數位破音訊號還原成電壓，推動你的監聽耳機。目前市面上即便是入門級的介面，其轉換晶片（如 Cirrus Logic 或 AKM）的動態範圍 (Dynamic Range) 通常也能達到 100dB 以上，應付一般居家錄音綽綽有餘。真正的差異往往體現在「驅動程式」的撰寫功力上。</p>
+          <p><strong>時鐘與 USB 控制器：</strong> 數位音訊需要極度精準的時鐘 (Word Clock) 來對齊每一個取樣點。如果時鐘不穩定（Jitter 抖動過大），會導致高頻失去光澤、立體聲結像模糊。USB 控制器則負責以最低的延遲將封包送進電腦記憶體，這部分與 ASIO 驅動的結合緊密無比，是決定延遲高低的關鍵硬體因素。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 6: 硬體規格對比 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">5. 入門級距音訊介面大比拚：MOMIX vs UMC202HD</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>針對有限預算的學生族群或居家吉他手，選擇正確的音訊介面是避免未來無數痛苦排查的關鍵。我們特別從知識庫中調閱了兩款市佔率極高、且你可能相當熟悉的設備進行深度比較：主打便攜與直播的 JOYO MOMIX-CAB，以及主打高性價比傳統錄音的 Behringer UMC202HD。</p>
+
+          <table class="w-full text-sm text-left text-slate-300 border-collapse mt-4 mb-6">
+            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+              <tr>
+                <th scope="col" class="px-6 py-3 border border-slate-600">規格項目</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600 text-purple-400">JOYO MOMIX-CAB</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600 text-orange-400">Behringer UMC202HD</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">主要定位</th>
+                <td class="px-6 py-4 border border-slate-600">吉他隨身錄音、手機直播整合。</td>
+                <td class="px-6 py-4 border border-slate-600">傳統桌上型雙軌錄音工作站。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">前級設計 (Preamp)</th>
+                <td class="px-6 py-4 border border-slate-600">針對吉他 Hi-Z 優化的基礎放大器。</td>
+                <td class="px-6 py-4 border border-slate-600">搭載知名 MIDAS 授權設計的麥克風前級，動態極佳。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">取樣率支援 (Max)</th>
+                <td class="px-6 py-4 border border-slate-600">48 kHz / 16-bit 或 24-bit。</td>
+                <td class="px-6 py-4 border border-slate-600">192 kHz / 24-bit (支援超高解析度錄音)。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">ASIO 驅動支援</th>
+                <td class="px-6 py-4 border border-slate-600">需依賴 ASIO4ALL 或原廠輕量級 ASIO，穩定度受電腦環境影響較大。</td>
+                <td class="px-6 py-4 border border-slate-600">原廠提供專屬且穩定的 UMC ASIO 驅動，延遲極低。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">特殊功能</th>
+                <td class="px-6 py-4 border border-slate-600">直接提供 Type-C 輸出給手機錄影，適合拍 IG/TikTok。</td>
+                <td class="px-6 py-4 border border-slate-600">具備硬體 Direct Monitor 按鈕與 48V 幻象電源。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>採購與升級建議：</strong> 如果你的終極目標是「使用電腦端的 Guitar Rig 7 創造頂級音色並錄製高品質 Demo」，UMC202HD 是更正統的選擇。它強大的 MIDAS 前級能確保你的吉他乾音 (DI Track) 純淨無瑕，且原廠的 ASIO 驅動能確保在設定 64 Samples 緩衝區時，不輕易發生爆音。相對地，如果你經常需要拿著手機自彈自唱拍短影音，MOMIX-CAB 的便攜性與手機無縫接軌的能力則是無可取代的，但在電腦端使用 AmpliTube 時，你可能需要花更多心力在 ASIO4ALL 的設定與雜音排查上。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 7: 硬體監聽 vs 軟體監聽 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">6. 監聽哲學：Direct Monitor vs Software Monitor</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>在接上耳機準備彈奏時，許多新手會被聲卡面板上一個標示著「Direct Monitor」或「Direct」的按鈕或旋鈕搞糊塗。理解這個功能的物理意義，是解決「為什麼我聽不到破音，只聽到乾乾的吉他聲」或「為什麼我的吉他聲有回音」這兩大經典問題的唯一鎖鑰。</p>
+          
+          <figure class="my-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="w-full h-48 bg-slate-700 flex flex-col justify-center items-center rounded text-slate-400 border border-dashed border-slate-500">
+              <svg class="w-12 h-12 mb-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+              <span>[圖片佔位符] 兩條路由對比圖：直接在聲卡折返 (Direct) vs 進出電腦運算 (Software)</span>
+            </div>
+            <figcaption class="text-sm text-center text-slate-400 mt-3">圖 6.1：硬體直接監聽與軟體監聽的訊號路徑差異。</figcaption>
+          </figure>
+
+          <p><strong>硬體直接監聽 (Direct Monitor - 乾音)：</strong> 當你開啟這個功能時，音訊介面會在硬體電路層級，直接把你插入的吉他訊號複製一份，發送到耳機孔。這條路徑**完全不經過電腦**，不經過 ADC/DAC，因此它擁有**真正的物理零延遲 (Zero Latency)**。但是，因為訊號沒有進入電腦，所以你聽到的就是吉他拾音器原汁原味、乾扁無聊的乾音 (Dry Signal)。這個功能通常用於人聲錄音（歌手需要聽到自己零延遲的真實聲音），或是當電腦效能太差、延遲高到無法彈奏時的無奈之舉。</p>
+          
+          <p><strong>軟體監聽 (Software Monitor - 濕音)：</strong> 這是電吉他手使用音箱模擬軟體（如 AmpliTube）時**必須使用**的模式。訊號的路徑是：吉他 → 聲卡 ADC → 電腦 → AmpliTube 運算產生破音、Delay、Reverb → 電腦 → 聲卡 DAC → 耳機。因為聲音經過了軟體的重重處理，你聽到的是華麗的濕音 (Wet Signal)。但代價是，這段旅程需要時間，也就是我們常說的系統延遲 (Latency)。如果你不小心同時開啟了聲卡的 Direct Monitor，又在軟體內開啟了監聽，你就會同時聽到「零延遲的乾音」與「有延遲的濕音」，兩者疊加在一起，就會產生像是在隧道裡彈吉他的噁心「回音 / 殘響」現象（梳狀濾波效應）。</p>
+          
+          <div class="bg-rose-900/40 p-4 rounded-xl border border-rose-700/50 mt-4">
+            <h4 class="text-rose-400 font-bold mb-1">🔥 電吉他手鐵則</h4>
+            <p class="text-sm text-slate-300">使用電腦軟體音箱時，請務必將聲卡硬體面板上的 <strong>Direct Monitor 關閉</strong>（或將旋鈕完全轉向 USB/PB 側），確保你耳機裡聽到的 100% 都是來自軟體運算後的濕音！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 8: Windows 音訊架構 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">7. 作業系統的重重阻礙：Windows Audio Stack 解析</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>為什麼吉他手一定要裝特定的驅動程式？為什麼不能像插 YouTube 看影片一樣隨插即用？要解答這個問題，我們必須深入了解 Windows 作業系統處理聲音的底層邏輯。Windows 是為了一般消費性多媒體而設計的，而不是為了專業實時音訊工程。</p>
+          
+          <p>在預設情況下，無論是瀏覽器發出的聲音、系統提示音、還是遊戲背景音，都會被送進一個叫做 <strong>Windows 系統混音器 (Windows Audio Session API, WASAPI Shared Mode / KMixer)</strong> 的核心組件。這個混音器的任務是把所有軟體的聲音「加」在一起，統一一個取樣率，然後再輸出給硬體。為了確保在你電腦 CPU 忙碌時聲音不會卡頓，這個混音器會強制加入極大的緩衝區 (Buffer)。</p>
+
+          <p>這在看 YouTube 時很棒，因為畫面和聲音延遲個 50 毫秒你根本察覺不到。但對於電吉他彈奏，這是毀滅性的。當你撥下琴弦，訊號進入 Windows 混音器排隊等候處理，再經過音箱軟體，最後傳回耳機。這整個過程如果使用 Windows 預設的 DirectSound 或 WASAPI 共享模式，延遲通常高達 30 毫秒至 100 毫秒以上。在聽覺心理學上，只要延遲超過 10 毫秒，大腦就會感覺到手指的動作與聽到的聲音「脫節」，超過 30 毫秒就會像是聽到了兩次聲音（Slapback Echo），你將完全無法進行速彈或精準的節奏掃弦。</p>
+
+          <p>這就是為什麼我們需要一個能「繞過」Windows 龐大官僚體系的特殊通道，而這條高速公路，就叫做 ASIO (Audio Stream Input/Output)。下一頁我們將深入探討 ASIO 的強大威力。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 9: ASIO 驅動 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">8. 專業錄音的高速公路：ASIO 獨占模式</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>ASIO (Audio Stream Input/Output) 是由德國 Steinberg 公司（Cubase 的母公司）開發的音訊驅動協議。它的核心理念只有一個：<strong>獨占與直通</strong>。它允許專業錄音軟體（如 REAPER、Guitar Rig）直接與音訊介面的硬體進行底層通訊，徹底繞過 Windows 作業系統的混音器 (KMixer) 與重取樣機制。</p>
+
+          <figure class="my-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="w-full h-48 bg-slate-700 flex flex-col justify-center items-center rounded text-slate-400 border border-dashed border-slate-500">
+              <svg class="w-12 h-12 mb-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>[圖片佔位符] ASIO 繞過 Windows 核心混音器的路徑圖</span>
+            </div>
+            <figcaption class="text-sm text-center text-slate-400 mt-3">圖 8.1：ASIO 直接硬體通訊架構。紅線為傳統路徑，藍線為 ASIO 高速通道。</figcaption>
+          </figure>
+
+          <p><strong>ASIO 的獨占性 (Exclusivity)：</strong> 為了達到最低延遲，原生的 ASIO 驅動通常是「獨占」的。這意味著當你在 AmpliTube 5 中啟用了聲卡的 ASIO 驅動，該聲卡的硬體資源就被 AmpliTube 鎖定了。此時如果你想在背景播放 Spotify 或開啟 YouTube 跟著 Backing Track 彈奏，你會發現瀏覽器顯示影片錯誤或沒有聲音。這不是電腦壞了，而是 Windows 失去了對該音效卡的控制權。要解決這個問題，高階的聲卡驅動（如 RME 或部分 Focusrite）支援 Multi-client ASIO（多客戶端並行），或者你需要使用 DAW 內部的軌道來匯入 Backing Track 播放。</p>
+
+          <p><strong>ASIO4ALL 是一個妥協：</strong> 許多沒有開發專屬 ASIO 驅動的入門聲卡（或主機板內建音效卡）會依賴一套名為「ASIO4ALL」的第三方軟體。請記住，ASIO4ALL 並不是真正的 ASIO 驅動，它只是一個巧妙的「包裝程式 (Wrapper)」。它在底層仍然使用的是 Windows 的 WDM (Windows Driver Model) 架構，只是將其包裝成 ASIO 的介面騙過錄音軟體。雖然它能顯著降低延遲，但穩定度與效能永遠比不上硬體廠商針對晶片親自撰寫的 Native ASIO 驅動（例如 UMC ASIO Driver）。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 10: 延遲數學模型 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">9. 延遲的數學模型：Buffer Size 與 Sample Rate</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>在 ASIO 控制面板中，我們最常調整的參數就是 <strong>Buffer Size (緩衝區大小)</strong>。這是一個殘酷的物理與數學妥協遊戲：你必須在「無感延遲」與「電腦 CPU 崩潰」之間取得完美的平衡點。</p>
+          <p>Buffer 就像是電腦處理音訊資料的「中轉倉庫」。資料不會一個一個取樣點連續處理，而是累積到一個 Buffer Size（例如 128 個取樣點）後，一次性打包送交 CPU 運算。Buffer 越小，打包頻率越高，聲音越快傳遞（延遲低），但 CPU 每秒被中斷 (Interrupt) 的次數就越多，負載極大。如果 CPU 算不完，資料鏈就會斷裂，產生可怕的爆音 (Pops & Clicks) 或破音。反之，Buffer 越大，CPU 越輕鬆，但延遲就會像回音一樣明顯。</p>
+
+          <h4 class="text-xl font-bold text-emerald-400 mt-6">延遲時間計算公式</h4>
+          <p class="font-mono bg-slate-800 p-3 rounded border border-slate-700">單向基礎延遲 (毫秒 ms) = (Buffer Size / Sample Rate) * 1000</p>
+          
+          <table class="w-full text-sm text-center text-slate-300 border-collapse mt-4 mb-6">
+            <caption class="text-xs text-slate-400 mb-2">表 9.1：在 44,100 Hz (44.1kHz) 取樣率下的理論延遲計算（僅計算緩衝區，未包含 USB 與 ADC/DAC 硬體轉換延遲）</caption>
+            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+              <tr>
+                <th scope="col" class="px-6 py-3 border border-slate-600">Buffer Size (Samples)</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600">單向理論延遲 (ms)</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600">雙向總延遲 (Round-Trip, ms)</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600">CPU 負載與彈奏感受</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-slate-800">
+                <td class="px-6 py-4 border border-slate-600 font-bold text-rose-400">32</td>
+                <td class="px-6 py-4 border border-slate-600">0.7 ms</td>
+                <td class="px-6 py-4 border border-slate-600">~1.4 ms + 硬體延遲</td>
+                <td class="px-6 py-4 border border-slate-600">CPU 極高。容易爆音，神級實時反應。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <td class="px-6 py-4 border border-slate-600 font-bold text-emerald-400">64</td>
+                <td class="px-6 py-4 border border-slate-600">1.4 ms</td>
+                <td class="px-6 py-4 border border-slate-600">~2.9 ms + 硬體延遲</td>
+                <td class="px-6 py-4 border border-slate-600">CPU 偏高。絕佳的彈奏手感，無感延遲，錄音室首選。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <td class="px-6 py-4 border border-slate-600 font-bold text-blue-400">128</td>
+                <td class="px-6 py-4 border border-slate-600">2.9 ms</td>
+                <td class="px-6 py-4 border border-slate-600">~5.8 ms + 硬體延遲</td>
+                <td class="px-6 py-4 border border-slate-600">CPU 穩定。多數電腦能完美運行，些微延遲但可接受。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <td class="px-6 py-4 border border-slate-600 font-bold text-slate-500">512</td>
+                <td class="px-6 py-4 border border-slate-600">11.6 ms</td>
+                <td class="px-6 py-4 border border-slate-600">~23.2 ms + 硬體延遲</td>
+                <td class="px-6 py-4 border border-slate-600">CPU 極低。彈奏有明顯黏滯感，通常用於「混音階段」而非錄音。</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><strong>實戰建議：</strong> 在錄製吉他時，請打開聲卡的 ASIO 控制面板，將 Buffer Size 盡可能下調到 <strong>64 或 128</strong>。如果在彈奏重破音時聽到「劈啪」聲，表示 CPU 撐不住了，請退回上一檔（例如從 64 調回 128）。當錄音完成，進入加載數十個軌道與 EQ/Compressor 的「混音階段 (Mixing)」時，請毫不猶豫地將 Buffer Size 調大至 512 或 1024，釋放 CPU 算力，因為混音不需要實時彈奏反應。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 11: 音箱模擬軟體入門 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">10. 數位音箱模擬 (Amp Simulators) 巨頭對決</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>過去要獲得頂級的電吉他音色，需要購買昂貴的實體真空管音箱 (Tube Amp)、麥克風，並在一個聲學處理良好的房間中錄音（還會吵到鄰居）。如今，數位訊號處理 (DSP) 技術與物理建模的發展，讓吉他手在臥室裡透過軟體就能重現上百萬等級的錄音室設備。目前市場上主流的吉他綜合音箱模擬軟體各有其哲學與特色：</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+            <div class="bg-slate-800 p-5 rounded-xl border border-orange-500/50">
+              <h3 class="text-xl font-bold text-orange-400 mb-2">AmpliTube 5 (IK Multimedia)</h3>
+              <p class="text-sm">主打「超擬真物理佈景」與「官方授權」。它的介面如同真實錄音室，你可以直觀地拖曳麥克風在喇叭單體 (Speaker Cone) 前面的位置，調整距離與角度。它擁有 Fender, Mesa/Boogie, Orange 等眾多品牌的官方授權物理建模，音色動態非常真實，適合追求傳統復古與經典搖滾音色的玩家。缺點是介面較為龐大，對電腦硬體需求稍高。</p>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-xl border border-yellow-500/50">
+              <h3 class="text-xl font-bold text-yellow-400 mb-2">Guitar Rig 7 Pro (Native Instruments)</h3>
+              <p class="text-sm">主打「模組化創意」與「聲音設計」。以機架式 (Rack) 的視覺介面呈現，信號流由上而下非常清晰。最新的第 7 代加入了機器學習 (ICM) 建模技術，破音的顆粒感大幅提升。它提供了無數光怪陸離的合成器效果、LFO 調變器，非常適合喜歡實驗性音色、前衛金屬 (Prog Metal) 或電音融合的創作者。缺點是原廠預設音色 (Presets) 有時過於浮誇，需要自行細調。</p>
+            </div>
+          </div>
+          
+          <p>除了這兩大巨頭，近年來以 **Neural DSP** 為首的獨立外掛 (Plugin) 陣營也異軍突起。Neural DSP 的 Archetype 系列（如 Plini, Tim Henson）摒棄了大而全的綜合設備，專注於重現單一吉他大師的標誌性音色與極致的現代高增益 (Modern High-Gain) 反應，是目前金屬與前衛樂手的心頭好。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 12: 軟體 I/O 路由 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">11. 破除無聲魔咒：軟體 I/O (輸入/輸出) 路由設定</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>安裝好 AmpliTube 5 或 Guitar Rig 7 後，新手最常遇到的第一個地獄就是：「我的吉他接上去了，軟體也開了，為什麼撥弦完全沒有聲音，連音量條都不會動？」這百分之九十九是因為軟體的 <strong>Audio / MIDI Setup (音訊偏好設定)</strong> 路由配置錯誤。</p>
+
+          <p>一套標準且確保發聲的設定流程必須嚴格遵循以下五個步驟：</p>
+          <ol class="list-decimal list-inside space-y-3 bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+            <li><strong>Audio Technology / Driver Type：</strong> 絕對不要選 Windows Audio 或 DirectSound。必須在下拉選單找到並點選 <strong>ASIO</strong>。</li>
+            <li><strong>Input Device / Output Device：</strong> 選擇你音訊介面的專屬驅動名稱（例如 `UMC ASIO Driver` 或 `JOYO ASIO`）。不要選 ASIO4ALL，除非你的硬體沒有專屬驅動。</li>
+            <li><strong>Sample Rate：</strong> 確保與你 Windows 系統右下角音效設定中的取樣率一致，通常設定為 <strong>44100 Hz</strong> 或 <strong>48000 Hz</strong>。兩邊不一致會導致軟體報錯或聲音變調（像花栗鼠）。</li>
+            <li><strong>Buffer Size：</strong> 點擊 Panel 或硬體控制台，調整為 <strong>64 或 128 Samples</strong> 以降低延遲。</li>
+            <li><strong>Input Routing (最關鍵)：</strong> 音訊介面通常有兩個以上的輸入孔。如果你的吉他插在聲卡的 Input 1，你必須在軟體的 `Left Input` 或 `Input 1` 下拉選單中明確指定為聲卡的 `In 1`。軟體預設不一定會抓對實體孔位！</li>
+          </ol>
+
+          <figure class="my-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="w-full h-48 bg-slate-700 flex flex-col justify-center items-center rounded text-slate-400 border border-dashed border-slate-500">
+              <svg class="w-12 h-12 mb-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span>[圖片佔位符] AmpliTube 5 的 Audio/MIDI Setup 視窗截圖，重點標示 ASIO 與 Input Routing。</span>
+            </div>
+            <figcaption class="text-sm text-center text-slate-400 mt-3">圖 11.1：軟體 I/O 設定的黃金三角：ASIO、Sample Rate、正確的 Input 對應。</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 13: 虛擬訊號鏈與 IR ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">12. 軟體內建：解構虛擬訊號鏈與箱體 IR 技術</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>搞定發聲後，我們進入音色塑造的核心。在軟體中，你必須按照真實世界的物理邏輯來擺放效果器，否則聲音會糊成一團。一條標準的吉他虛擬訊號鏈 (Virtual Signal Chain) 順序通常是：</p>
+          
+          <div class="flex flex-wrap gap-2 text-sm font-bold my-4">
+            <span class="bg-amber-700/50 px-3 py-1 rounded">1. 噪音門 (Noise Gate)</span> ➔ 
+            <span class="bg-purple-700/50 px-3 py-1 rounded">2. 哇哇/壓縮 (Wah/Comp)</span> ➔ 
+            <span class="bg-rose-700/50 px-3 py-1 rounded">3. 破音踏板 (Overdrive/Dist)</span> ➔ 
+            <span class="bg-slate-600 px-3 py-1 rounded">4. 音箱頭 (Amp Head / Preamp)</span> ➔ 
+            <span class="bg-blue-700/50 px-3 py-1 rounded">5. 空間效果 (Delay/Chorus)</span> ➔ 
+            <span class="bg-emerald-700/50 px-3 py-1 rounded">6. 喇叭箱體 (Cab/IR)</span> ➔ 
+            <span class="bg-cyan-700/50 px-3 py-1 rounded">7. 殘響 (Reverb)</span>
+          </div>
+
+          <p><strong>箱體模擬革命：IR (Impulse Response) 脈衝響應</strong></p>
+          <p>在所有環節中，對音色影響最大的（高達 70%）不是昂貴的音箱頭，而是<strong>喇叭箱體與麥克風的收音</strong>。早期的數位綜合效果器聲音聽起來很「假」、「充滿塑膠感」，就是因為使用簡單的 EQ 濾波器來模擬箱體。現代軟體全面導入了 <strong>IR (Impulse Response)</strong> 技術。</p>
+          <p>IR 可以想像成是一張聲音的「3D 拓印相片」。音訊工程師在頂級錄音室裡，發射一段涵蓋所有頻率的測試訊號 (Sweep) 穿過真實的喇叭單體（例如 Celestion V30），並用經典麥克風（如 Shure SM57）收音。透過複雜的反卷積運算 (Deconvolution)，提取出這個空間、這顆單體、這支麥克風的所有物理頻響特性，儲存為一個極小的 .wav 檔案。當你在軟體中載入這個 IR 檔，你的吉他聲音經過數學卷積 (Convolution) 運算後，就會完美披上百萬錄音室的空間聲學外衣。在 AmpliTube 5 中，Cab 介面背後運作的就是極度細緻的動態 IR 引擎。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 14: 噪音排查一：接地迴路 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">13. 故障排除大師班：接地迴路 (Ground Loop) 嗡嗡聲</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>吉他錄音最讓人崩潰的不是彈錯，而是無論怎麼調，背景總是伴隨著惱人的低頻「嗡嗡」聲 (Hum)。在排查雜音時，首先要釐清這是來自「電源」還是「空間電磁波」。最常見且最致命的電源噪音，稱為<strong>接地迴路 (Ground Loop)</strong>。</p>
+
+          <h4 class="text-lg font-bold text-amber-400 mt-4">物理成因分析：</h4>
+          <p>接地迴路發生在當兩個以上的音響設備（例如你的電腦、音訊介面、外接主動式監聽喇叭）都連接到同一個建築物地線，但由於不同插座或設備內部的電位差，導致地線之間產生了微小的漏電流。這個交流電（在台灣是 60Hz，在歐洲是 50Hz）的頻率會直接竄入你的音訊地線中，在吉他高增益破音的放大下，變成如直升機般響亮的嗡嗡聲。</p>
+
+          <table class="w-full text-sm text-left text-slate-300 border-collapse mt-4 mb-6">
+            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+              <tr>
+                <th scope="col" class="px-4 py-2 border border-slate-600">排查步驟</th>
+                <th scope="col" class="px-4 py-2 border border-slate-600">具體操作與判定邏輯</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-slate-800">
+                <td class="px-4 py-2 border border-slate-600 font-bold">1. 拔除筆電變壓器測試</td>
+                <td class="px-4 py-2 border border-slate-600">如果使用筆記型電腦錄音，請直接拔除電源線，使用電池供電。如果此時嗡嗡聲瞬間消失，100% 確診為變壓器造成的接地迴路。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <td class="px-4 py-2 border border-slate-600 font-bold">2. 移除外接螢幕與喇叭</td>
+                <td class="px-4 py-2 border border-slate-600">拔除所有連接在電腦上的 HDMI 螢幕、外接 USB 裝置與電源喇叭，只保留耳機。如果雜音消失，代表迴路來自這些外接設備的地線。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <td class="px-4 py-2 border border-slate-600 font-bold">3. 使用 USB 隔離器</td>
+                <td class="px-4 py-2 border border-slate-600">如果必須插電錄音，可以購買「USB 音訊地線隔離器 (USB Isolator)」，串接在聲卡與電腦之間，從物理上斬斷 USB 的 5V 地線污染。</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="text-sm text-slate-400">💡 警告：千萬不要為了消除雜音，而拔斷插頭上的第三根地線圓柱！這會讓你的電腦外殼帶電，甚至有觸電的致命危險。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 15: 噪音排查二：電磁干擾 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">14. 故障排除大師班：電磁干擾 (EMI) 與高頻嘶嘶聲</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>排除了低頻的 Ground Loop 後，如果你聽到的雜音是偏向高頻的「嘶嘶嘶 (Hiss)」或像老式收音機的雜訊，這通常是<strong>電磁干擾 (EMI) 或射頻干擾 (RFI)</strong>。這種干擾是透過空氣傳播的，你的吉他拾音器就像天線一樣把它們全吸了進來，特別是使用單線圈 (Single Coil) 的玩家受害最深。</p>
+
+          <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 my-4 space-y-3">
+            <h4 class="font-bold text-emerald-400">🔍 EMI 排查與阻絕五步法：</h4>
+            <ul class="list-disc list-inside space-y-2 text-sm text-slate-300">
+              <li><strong>肉身雷達旋轉法：</strong> 抱著吉他，在房間內緩慢原地旋轉 360 度。你會發現某個特定角度（通常是拾音器線圈與螢幕/主機呈 90 度垂直時），雜音會顯著減少甚至消失。請記住這個黃金錄音角度。</li>
+              <li><strong>關閉罪魁禍首：</strong> 嘗試暫時關閉房間內的 LED 檯燈、日光燈管、電風扇，並遠離 Wi-Fi 路由器。劣質的 LED 變壓器是發出高頻電磁波的元凶。</li>
+              <li><strong>手觸金屬測試：</strong> 將手放在吉他的琴弦或金屬搖座上。如果雜音變小，這代表你的吉他內部接地良好，你的身體吸收了部分干擾；如果手放上去雜音變大或沒反應，代表吉他內部的接地線 (Ground Wire) 可能斷了，需要拆開電路室重新焊線。</li>
+              <li><strong>鋁箔銅箔屏蔽工程 (Shielding)：</strong> 終極物理防禦。拆開吉他護板，在內部的木頭凹槽與護板背面貼滿導電銅箔膠帶，並確保銅箔與地線相連，形成一個「法拉第籠 (Faraday Cage)」，能阻擋 80% 以上的空中電磁波。</li>
+              <li><strong>軟體救贖 Noise Gate：</strong> 在軟體訊號鏈的第一格加上 Noise Gate 踏板。將 Threshold 稍微推高，確保在你不用力彈奏時，雜音被完全靜音。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 16: 系統權限排查 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">15. 系統玄學：Windows 麥克風權限與裝置跑位</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>有些時候，你的硬體連線完美，軟體設定正確，前一天錄音還好好的，今天打開軟體卻突然「完全收不到音」。這種靈異現象在 Windows 系統中層出不窮，通常有兩大隱形殺手在作祟：</p>
+
+          <h4 class="font-bold text-rose-400 mt-4">殺手一：Windows 隱私權限封鎖</h4>
+          <p>從 Windows 10 開始，微軟為了防止惡意軟體竊聽，在系統層級加入了麥克風隱私控制。Windows 會將所有的 USB 音訊介面輸入（你的吉他）一律視為「麥克風」。</p>
+          <p><strong>解法：</strong> 進入 Windows 設定 ➔ 隱私權與安全性 ➔ 麥克風 ➔ 確保「允許應用程式存取您的麥克風」開關呈現<strong>開啟 (On)</strong> 狀態。如果這個被關閉，即便你的 ASIO 驅動正常，AmpliTube 也絕對收不到任何吉他訊號，因為訊號在 OS 核心就被腰斬了。</p>
+
+          <h4 class="font-bold text-rose-400 mt-4">殺手二：軟體重啟後 ASIO 裝置自動跑位</h4>
+          <p>這是一個非常常見的 Bug（特別是在使用 ASIO4ALL 或是多個錄音軟體共存時）。你打開軟體，發現輸入裝置自動跳回了 `Senary Audio` 或主機板內建音效卡，導致錄不到吉他聲。</p>
+          <p><strong>解法與預防：</strong> 
+            <br>1. <strong>避免獨占衝突：</strong> 在 Windows 聲音控制台的「播放」與「錄製」裝置內容中，進入「進階」分頁，取消勾選「允許應用程式獨占這個裝置」。
+            <br>2. <strong>統一取樣率：</strong> 確保 Windows 預設播放裝置的取樣率（例如 48000Hz）與你錄音軟體的取樣率完全一致。如果兩者打架，ASIO 驅動容易崩潰並被系統踢出。
+            <br>3. <strong>終極大絕：</strong> 拔掉 USB 線，重新開機，插回 USB 確保聲卡亮燈後，<strong>再</strong>開啟錄音軟體。順序錯誤很容易抓不到裝置。
+          </p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 17: Gain Staging ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">16. 錄音實戰核心：增益架構 (Gain Staging)</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>擁有再好的設備與軟體，如果「輸入音量」設錯了，出來的聲音依然是垃圾。<strong>增益架構 (Gain Staging)</strong> 是一門控制訊號在每一關卡都保持在最佳工作區間的藝術。數位錄音的鐵則與以前的類比磁帶錄音完全不同。</p>
+
+          <p>在類比時代，錄音師會刻意把訊號推得很大（甚至稍微破表），以獲取磁帶溫暖的飽和失真 (Tape Saturation)。但在數位時代（ADC 轉換），最高天花板就是 0 dBFS。一旦你的訊號超過 0 dBFS，多出來的波形會遭到殘暴的「削峰 (Clipping)」，產生數位失真。這種失真聽起來像刺耳的撕裂聲，是混音時絕對無法修復的災難，也就是俗稱的「爆軌」。</p>
+
+          <figure class="my-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="w-full h-48 bg-slate-700 flex flex-col justify-center items-center rounded text-slate-400 border border-dashed border-slate-500 relative overflow-hidden">
+              <div class="absolute left-0 bottom-1/2 w-full h-[1px] bg-slate-500"></div>
+              <svg class="w-full h-24 text-blue-500" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 Q 5 -5, 10 10 T 20 10 T 30 10 T 40 10" fill="none" stroke="currentColor" stroke-width="0.5"></path></svg>
+              <div class="absolute right-4 top-2 text-rose-500 font-bold">0 dBFS (絕對天花板)</div>
+              <div class="absolute right-4 bottom-1/4 text-emerald-500 font-bold">-12 ~ -18 dBFS (最佳動態區間)</div>
+            </div>
+            <figcaption class="text-sm text-center text-slate-400 mt-3">圖 17.1：數位音頻動態範圍 (Headroom) 示意圖，紅線為爆軌點。</figcaption>
+          </figure>
+
+          <div class="bg-slate-800 p-5 rounded-xl border border-emerald-700/50 mt-4">
+            <h4 class="font-bold text-emerald-400">✅ 正確設定聲卡 Gain 旋鈕的 3 步驟：</h4>
+            <ol class="list-decimal list-inside space-y-2 text-sm text-slate-300">
+              <li>在軟體音箱中選擇一個完全乾淨的 Clean Tone 預設。</li>
+              <li>在吉他上切換到出力最大的拾音器段位（通常是琴橋 Bridge 段），並用力刷和弦 (Strumming) 或是用力悶音下撥 (Palm Mute Chunk)。</li>
+              <li>看著聲卡硬體上的 LED 指示燈（或軟體介面左下角的 Input Meter）。慢慢調大聲卡上的 Gain 旋鈕。當你用力彈奏時，燈號應該保持在<strong>綠色</strong>，最多偶爾跳到黃色。如果出現<strong>紅色 (Clip/Peak)</strong>，請立刻把 Gain 往回退！在數位錄音中，輸入訊號峰值 (Peak) 落在 <strong>-12dBFS 到 -18dBFS</strong> 之間是最安全且動態最漂亮的黃金區間 (Headroom)。</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 18: DAW 錄音工作站 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">17. 脫離玩具階段：進入 DAW (數位音訊工作站)</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>AmpliTube 5 雖然好玩，但如果你開啟的是它的「獨立執行版 (Standalone)」，你頂多只能自彈自唱。要製作一首完整的音樂（包含鼓組、貝斯、多軌吉他疊錄、混音），你必須將軟體音箱作為一個 <strong>Plugin (外掛)</strong>，掛載到 DAW（數位音訊工作站）之中。</p>
+          <p>主流的 DAW 包含：REAPER (強烈推薦新手，體積小且功能逆天)、Cubase、Ableton Live 與 Logic Pro。在 DAW 中錄製吉他，有一個顛覆新手認知的絕對真理：<strong>「錄乾聽濕 (Record DI, Monitor Wet)」</strong>。</p>
+
+          <h4 class="font-bold text-blue-300 mt-4">什麼是錄乾聽濕？ (DI Recording)</h4>
+          <p>在 DAW 裡，你新增一條軌道準備錄吉他，並在該軌道的 FX 欄位掛載 AmpliTube 外掛。當你按下錄音鍵彈奏時，你耳機裡聽到的是狂暴的破音（聽濕），但 DAW 實際錄進硬碟裡的波形，其實是你吉他最原始、沒有任何效果的乾音訊號 (Direct Injection, DI Track)。</p>
+          <p><strong>這樣做的巨大優勢在於：Re-amping (重新掛載音箱)。</strong></p>
+          <p>假設你用一個極度兇猛的破音錄完了一段 Solo，隔天混音時覺得這個破音太刺耳、和貝斯打架了。因為你錄下的是 DI 乾音，你只需要打開軌道上的 AmpliTube 外掛，按兩下老鼠切換成另一個較為溫暖的音箱頭，整軌錄好的吉他音色瞬間就改變了！你完全不需要重新彈奏一遍。這種「無破壞性編輯」是現代數位音樂製作最強大的武器。</p>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 19: 整合與未來發展 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">18. 實體與數位的交匯：多媒體音訊介面的未來</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>隨著 TikTok、IG Reels 短影音與直播的崛起，新一代吉他手對於錄音介面的需求已經不僅限於「接上電腦用 DAW 錄音」。這也催生了如 JOYO MOMIX-CAB 這類主打「全平台跨界整合」的新型態設備。</p>
+
+          <p>這類新型介面通常內建了 <strong>Loopback (內錄回授)</strong> 功能。傳統錄音介面（如早期的 UMC 晶片）只有把外部聲音輸入電腦的能力。而具備 Loopback 功能的聲卡，能在硬體內部將「麥克風/吉他輸入的聲音」加上「電腦正在播放的聲音（例如 Spotify 伴奏或 YouTube 背板）」混合在一起，然後變成一條虛擬的輸入音軌，傳送給 OBS 直播軟體或手機的相機 APP。</p>
+
+          <table class="w-full text-sm text-left text-slate-300 border-collapse mt-4 mb-6">
+            <caption class="text-xs text-slate-400 mb-2">表 19.1：傳統錄音介面與現代串流介面的應用場景對比</caption>
+            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+              <tr>
+                <th scope="col" class="px-6 py-3 border border-slate-600">應用場景</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600">傳統介面 (無 Loopback)</th>
+                <th scope="col" class="px-6 py-3 border border-slate-600">現代串流介面 (具備 Loopback)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">DAW 多軌錄音與混音</th>
+                <td class="px-6 py-4 border border-slate-600 text-emerald-400">極佳 (專注穩定度與超低延遲 ASIO)。</td>
+                <td class="px-6 py-4 border border-slate-600 text-slate-300">良好 (依賴廠商驅動優化)。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">手機直連錄影 (OTG)</th>
+                <td class="px-6 py-4 border border-slate-600 text-rose-400">需使用複雜轉接線 (Camera Kit)，常遇供電不足。</td>
+                <td class="px-6 py-4 border border-slate-600 text-emerald-400">Type-C 一線直連，完美支援 iOS/Android 預設相機。</td>
+              </tr>
+              <tr class="bg-slate-800">
+                <th scope="row" class="px-6 py-4 font-medium border border-slate-600">OBS 遊戲/音樂直播</th>
+                <td class="px-6 py-4 border border-slate-600 text-rose-400">需依靠虛擬音源線 (Voicemeeter) 設定複雜軟體路由。</td>
+                <td class="px-6 py-4 border border-slate-600 text-emerald-400">一鍵開啟 Loopback，輕鬆同時實況吉他聲與電腦伴奏。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== Slide 20: 總結 ==================== -->
+      <div class="slide flex-col justify-start h-full space-y-6 overflow-y-auto px-4 pb-12">
+        <h2 class="text-4xl font-bold text-blue-400 sticky top-0 bg-slate-900/90 py-4 z-10 backdrop-blur">19. 總結與核心 Check-list</h2>
+        <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+          <p>恭喜你完成了這趟橫跨硬體物理學、作業系統底層架構到數位音頻理論的硬核之旅。在未來每次接上吉他準備創作時，請在腦海中快速閃過這份錄音工程師必備的 Checklist 檢查表，能幫你省下無數抓狂排查雜音的時間：</p>
+
+          <ul class="list-none space-y-4 mt-6">
+            <li class="bg-slate-800 p-4 rounded-xl border-l-4 border-blue-500">
+              <strong class="text-blue-400">1. 硬體連接層：</strong> 導線是否插入了標示 Hi-Z / INST 的孔位？是否已經手動按下了 Hi-Z 開關啟動高阻抗匹配？
+            </li>
+            <li class="bg-slate-800 p-4 rounded-xl border-l-4 border-emerald-500">
+              <strong class="text-emerald-400">2. 監聽設定層：</strong> 硬體上的 Direct Monitor 旋鈕是否已經完全關閉（轉到 USB 側），以避免聽到乾濕疊加的回音？
+            </li>
+            <li class="bg-slate-800 p-4 rounded-xl border-l-4 border-purple-500">
+              <strong class="text-purple-400">3. 作業系統層：</strong> Windows 的「麥克風隱私權限」是否開啟？播放裝置的取樣率 (例如 48kHz) 是否與 DAW 內部設定完全一致？
+            </li>
+            <li class="bg-slate-800 p-4 rounded-xl border-l-4 border-rose-500">
+              <strong class="text-rose-400">4. 軟體路由層：</strong> Audio Device Type 是否選擇了 ASIO（而非 DirectSound）？輸入孔 (Input Routing) 是否確實對應吉他插入的孔位（例如 In 1）？
+            </li>
+            <li class="bg-slate-800 p-4 rounded-xl border-l-4 border-amber-500">
+              <strong class="text-amber-400">5. 延遲與動態層：</strong> ASIO Buffer Size 是否設定在 64 或 128 Samples 以達到無感延遲？用力彈奏時，音效卡的 LED 燈是否保持綠色，避免超過 0 dBFS 產生紅燈削峰 (Clipping)？
+            </li>
+          </ul>
+
+          <p class="mt-8 text-center text-slate-500 italic">"The gear is just a tool. Understanding the signal flow is the true mastery."<br>（設備只是工具，理解訊號流才是真正的精通。）</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 底部控制列 -->
+  <footer class="w-full bg-slate-800/90 backdrop-blur border-t border-slate-700 p-4 fixed bottom-0 z-50">
+    <div class="max-w-5xl mx-auto flex justify-between items-center">
+      <button id="prevBtn" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        ← 上一步 (Prev)
+      </button>
+      <div class="text-center">
+        <span id="pageIndicator" class="text-sm font-bold text-slate-300">1 / 19</span>
+        <p class="text-xs text-slate-500 mt-0.5 hidden md:block">Use Arrow Keys ← / → to navigate</p>
+      </div>
+      <button id="nextBtn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        下一步 (Next) →
+      </button>
+    </div>
+  </footer>
+
+  <!-- 翻頁控制腳本 -->
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+    
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const progressBar = document.getElementById('progressBar');
+
+    function updateSlide() {
+      // 更新視圖
+      slides.forEach((slide, idx) => {
+        if (idx === currentSlide) {
+          slide.classList.add('active');
+          // 翻頁時滾動軸回到頂部
+          slide.scrollTop = 0;
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+      
+      // 更新 UI 指示器
+      pageIndicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+      progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+      
+      // 按鈕狀態
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === totalSlides - 1;
+    }
+
+    // 按鈕事件
+    nextBtn.addEventListener('click', () => {
+      if (currentSlide < totalSlides - 1) { currentSlide++; updateSlide(); }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentSlide > 0) { currentSlide--; updateSlide(); }
+    });
+
+    // 鍵盤事件
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) { 
+        currentSlide++; updateSlide(); 
+      }
+      if (e.key === 'ArrowLeft' && currentSlide > 0) { 
+        currentSlide--; updateSlide(); 
+      }
+    });
+
+    // 初始化
+    updateSlide();
+  </script>
+</body>
+</html>

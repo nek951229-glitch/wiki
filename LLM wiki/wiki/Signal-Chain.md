@@ -1,0 +1,1 @@
+\# 電吉他訊號鏈 (Signal Chain)電吉他電腦錄音的傳輸路徑如下：`電吉他 (Hi-Z)` → `6.3mm TS 導線` → `音訊介面 (ADC)` → `USB` → `電腦 DAW / 音箱模擬`\## 關鍵觀點\- \*\*Hi-Z (高阻抗)\*\*：吉他拾音器輸出訊號阻抗極高，必須插入聲卡的 Hi-Z / Inst 專用孔。\[Source: raw/source1-signal-chain.txt]

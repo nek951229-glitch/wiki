@@ -1,0 +1,1 @@
+\# ASIO vs WASAPI 驅動\## 驅動效能比較| 驅動名稱 | 延遲時間 | 適用情境 || :--- | :--- | :--- || \*\*ASIO\*\* | < 10 ms | 實時錄音與吉他彈奏 || \*\*WASAPI\*\* | 30 \~ 100 ms | 日常聽歌、看影片 |\## Buffer Size 設定建議設為 \*\*64 或 128 Samples\*\*。\[Source: raw/source3-asio-drivers.txt]
